@@ -162,16 +162,16 @@ app.post('/get-first-aid', async (req, res) => {
     }
 });
 
-app.get('/', async (req, res) => {
-    try {
-        const readmePath = path.join(__dirname, 'readme.md');
-        const data = await fs.promises.readFile(readmePath, 'utf8');
-        res.send(`<pre>${data}</pre>`);
-    } catch (err) {
-        console.error('Error reading README file:', err);
-        res.status(500).send('Server error');
-    }
-});
+// app.get('/', async (req, res) => {
+//     try {
+//         const readmePath = path.join(__dirname, 'readme.md');
+//         const data = await fs.promises.readFile(readmePath, 'utf8');
+//         res.send(`<pre>${data}</pre>`);
+//     } catch (err) {
+//         console.error('Error reading README file:', err);
+//         res.status(500).send('Server error');
+//     }
+// });
 
 app.get('/hospitals', async (req, res) => {
     try {
