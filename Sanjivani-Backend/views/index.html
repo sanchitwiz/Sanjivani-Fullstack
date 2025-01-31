@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Upload an Image for Classification</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="imageInput" name="file" accept="image/*" required />
+        <button type="submit">Upload & Classify</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Get the file from the input field
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                resultDiv.textContent = 'Please select an image!';
+                resultDiv.classList.add('error');
+                return;
+            }
+
+            // Prepare the form data
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Send the POST request to the Node.js backend
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // Parse the response
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.textContent = `Predicted Injury: ${data.predicted_injury_name}`;
+                    resultDiv.classList.remove('error');
+                } else {
+                    throw new Error(data.error || 'Prediction failed.');
+                }
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                resultDiv.classList.add('error');
+            }
+        });
+    </script>
+
+</body>
+</html>

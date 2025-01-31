@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rider Page</title>
+</head>
+<body>
+    <h1>Rider for Ambulance ID: <%= ambulanceId %></h1>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const ambulanceId = '<%= ambulanceId %>';
+
+        function sendLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        socket.emit('riderLocation', {
+                            ambulanceId: ambulanceId,
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        });
+                    },
+                    (error) => {
+                        console.log(error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0,
+                    }
+                );
+            } else {
+                console.log("Geolocation is not supported by this browser.");
+            }
+        }
+
+        sendLocation();
+    </script>
+</body>
+</html>

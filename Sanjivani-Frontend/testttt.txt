@@ -1,0 +1,67 @@
+for third
+
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     if (!isDragging) {
+  //       setActiveSlide((prevSlide) => (prevSlide + 1) % slides.length);
+  //     }
+  //   }, 4000); // 4 seconds
+
+  //   return () => clearInterval(interval);
+  // }, [isDragging, slides.length]);
+
+
+
+
+
+          {/* Graphs and Summary */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold">Recent Activities</h3>
+            {/* Include your chart here */}
+            <div className="mt-4">Chart Placeholder</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold">Total Bookings</h3>
+            {/* Include your chart here */}
+            <div className="mt-4">Pie Chart Placeholder</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold">Diseases Summary</h3>
+            {/* Include your chart here */}
+            <div className="mt-4">Pie Chart Placeholder</div>
+          </div>
+        </div>
+
+        {/* Lists */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold">Top Treatments</h3>
+            <ul className="list-decimal pl-4 mt-4">
+              <li>Consultation</li>
+              <li>Scaling</li>
+              <li>Root Canal</li>
+              <li>Bleaching</li>
+              <li>Transplants</li>
+              <li>Cesarean</li>
+              <li>X-Rays</li>
+            </ul>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold">Doctors List</h3>
+            <ul className="mt-4">
+              <li>John Doe - Dentist</li>
+              <li>John Doe - Dentist</li>
+              <li>John Doe - Dentist</li>
+            </ul>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold">Upcoming Appointments</h3>
+            <ul className="mt-4">
+              <li>John Doe - 24y</li>
+              <li>John Doe - 24y</li>
+              <li>John Doe - 24y</li>
+            </ul>
+          </div>
+        </div>

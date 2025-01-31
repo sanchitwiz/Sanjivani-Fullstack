@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hospitals and Routes</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://apis.mappls.com/advancedmaps/api/0185171f08b0a500267c576378babfa8/map_sdk?v=3.0&layer=vector"></script>
+    <link rel="stylesheet" href="https://apis.mappls.com/advancedmaps/api/8.0/advancedmaps.css" />
+    <style>
+        html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; } 
+        #map { height: 500px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Find Hospitals Near You</h1>
+
+        <!-- Form to enter prompt -->
+        <form id="hospital-form">
+            <div class="form-group">
+                <label for="prompt">Enter Your Medical Condition or Service:</label>
+                <input type="text" id="prompt" name="prompt" class="form-control" placeholder="e.g., heart check" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Find Hospitals</button>
+        </form>
+
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <h3>Hospitals List</h3>
+                <ul class="list-group" id="hospital-list">
+                    <!-- Hospitals will be dynamically added here -->
+                </ul>
+            </div>
+            <div class="col-md-8">
+                <h3>Map</h3>
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    
+    <script>
+        let map; // Global map variable
+        let userLat, userLng; // User's location coordinates
+        let activeRoute = null; // Track the active route polyline
+    
+        // Initialize the map
+        function initMap() {
+            map = new mappls.Map('map', {
+                center: { lat: 28.612964, lng: 77.229463 }, // Default center (New Delhi)
+                zoom: 12
+            });
+    
+            // Try to get user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+    
+                    // Update map's center to user's current location
+                    map.setCenter({ lat: userLat, lng: userLng });
+    
+                    // Add marker at user's current location
+                    new mappls.Marker({
+                        map: map,
+                        position: { lat: userLat, lng: userLng },
+                        title: "Your Location"
+                    });
+                }, function () {
+                    console.error("Geolocation failed or is not supported by this browser.");
+                });
+            } else {
+                console.error("Geolocation is not supported by this browser.");
+            }
+        }
+    
+        // Fetch hospital data based on the entered prompt
+        function fetchHospitals(prompt) {
+            $.ajax({
+                url: '/get-hospital',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ prompt: prompt }),
+                success: function (response) {
+                    const hospitals = response.hospitals;
+                    $('#hospital-list').empty();
+    
+                    // If no hospitals are found
+                    if (hospitals.length === 0) {
+                        $('#hospital-list').append(`<li class="list-group-item">No hospitals found.</li>`);
+                        return;
+                    }
+    
+                    let shortestETA = Infinity;
+                    let defaultHospital = null;
+    
+                    hospitals.forEach(hospital => {
+                        const destLat = hospital.location.coordinates[1];
+                        const destLng = hospital.location.coordinates[0];
+                        const distance = calculateDistance(userLat, userLng, destLat, destLng);
+                        const eta = calculateETA(distance);
+    
+                        // Append hospital details
+                        $('#hospital-list').append(`
+                            <li class="list-group-item hospital-item" data-lat="${destLat}" data-lng="${destLng}" data-name="${hospital.name}">
+                                <h5>${hospital.name}</h5>
+                                <p>${hospital.address}</p>
+                                <p>Beds Available: ${hospital.bedsAvailable}</p>
+                                <p>Distance: ${distance.toFixed(2)} km</p>
+                                <p>ETA: ${eta.toFixed(2)} mins</p>
+                            </li>
+                        `);
+    
+                        if (eta < shortestETA) {
+                            shortestETA = eta;
+                            defaultHospital = { lat: destLat, lng: destLng, name: hospital.name };
+                        }
+                    });
+    
+                    if (defaultHospital) {
+                        loadRoute(userLat, userLng, defaultHospital.lat, defaultHospital.lng, defaultHospital.name);
+                    }
+                },
+                error: function (err) {
+                    console.error('Error fetching hospitals:', err);
+                }
+            });
+        }
+    
+        // Load route and draw it on the map
+        function loadRoute(startLat, startLng, endLat, endLng, hospitalName) {
+            const routeUrl = `/route?startLat=${startLat}&startLng=${startLng}&endLat=${endLat}&endLng=${endLng}`;
+            fetch(routeUrl)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Route Data:', data); // Debug log
+                    if (data.route && data.route.geometry) {
+                        const routeGeometry = data.route.geometry;
+    
+                        // Decode the polyline
+                        const decodedPath = decodePolyline(routeGeometry);
+    
+                        // Clear previous routes from the map
+                        if (activeRoute) {
+                            activeRoute.setMap(null);
+                        }
+    
+                        // Draw the polyline on the map
+                        activeRoute = new mappls.Polyline({
+                            path: decodedPath,
+                            map: map,
+                            strokeColor: '#00f',
+                            strokeOpacity: 1.0,
+                            strokeWeight: 4
+                        });
+    
+                        // Add a marker for the hospital
+                        new mappls.Marker({
+                            map: map,
+                            position: { lat: endLat, lng: endLng },
+                            title: hospitalName
+                        });
+    
+                        // Center the map on the hospital
+                        map.setCenter({ lat: endLat, lng: endLng });
+                    } else {
+                        console.error('No route found.');
+                        alert('No route found. Please try again later.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching route:', error);
+                    alert('An error occurred while fetching the route.');
+                });
+        }
+    
+        // Decode the polyline (OSRM format)
+        function decodePolyline(encoded) {
+            let points = [];
+            let index = 0, len = encoded.length;
+            let lat = 0, lng = 0;
+    
+            while (index < len) {
+                let b, shift = 0, result = 0;
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                let dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                lat += dlat;
+    
+                shift = 0;
+                result = 0;
+                do {
+                    b = encoded.charCodeAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                let dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                lng += dlng;
+    
+                points.push({ lat: lat / 1E5, lng: lng / 1E5 });
+            }
+    
+            return points;
+        }
+    
+        // Function to calculate distance (in km)
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // Radius of the Earth in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distance in km
+        }
+    
+        // Function to calculate ETA (in minutes)
+        function calculateETA(distance) {
+            const speed = 60; // Average speed in km/h
+            return (distance / speed) * 60; // Convert to minutes
+        }
+    
+        // Initialize the map when the page loads
+        window.onload = initMap;
+    
+        // Handle form submission
+        $('#hospital-form').on('submit', function (e) {
+            e.preventDefault();
+            const prompt = $('#prompt').val().trim();
+            fetchHospitals(prompt);
+        });
+    
+        // Handle click on hospital list items to load route
+        $(document).on('click', '.hospital-item', function () {
+            const lat = $(this).data('lat');
+            const lng = $(this).data('lng');
+            const name = $(this).data('name');
+            loadRoute(userLat, userLng, lat, lng, name);
+        });
+    </script>
+    
+</body>
+</html>
