@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+import lineClamp from '@tailwindcss/line-clamp'; // Import the line-clamp plugin
+
 export default {
   content: [
     "./index.html",
@@ -26,7 +28,7 @@ export default {
     },
   },
   plugins: [
-    require('@tailwindcss/line-clamp'),
+    lineClamp, // Add the plugin directly after importing
     function ({ addUtilities }) {
       addUtilities({
         '.drag-none': {

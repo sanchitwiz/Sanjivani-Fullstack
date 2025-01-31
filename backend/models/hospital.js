@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const hospitalSchema = new mongoose.Schema({
+const hospitalSchema = new Schema({
     name: {
         type: String,
         required: true
@@ -25,15 +25,15 @@ const hospitalSchema = new mongoose.Schema({
         required: true
     },
     services: [{
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Service'
     }],
     doctors: [{
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Doctor'
     }]
 });
 
 hospitalSchema.index({ location: '2dsphere' });
 
-module.exports = mongoose.model('Hospital', hospitalSchema);
+export default model('Hospital', hospitalSchema);

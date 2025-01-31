@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const ambulanceSchema = new mongoose.Schema({
+const ambulanceSchema = new Schema({
     number: { type: String, required: true },
     driverName: { type: String, required: true },
     mobile: { type: String, required: true },  // Make sure this field is defined
@@ -16,5 +16,5 @@ const ambulanceSchema = new mongoose.Schema({
     clientemail: {type: String}
 });
 
-module.exports = mongoose.model('Ambulance', ambulanceSchema);
+export default model('Ambulance', ambulanceSchema);
 

@@ -63,8 +63,18 @@ const SearchFacilitiesNearby = () => {
   const loadRoute = (hospital) => {
     const { coordinates } = hospital.location;
     const { lat, lng } = userLocation;
-    const baseURL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+    
+    // Debug: Log coordinates
+    console.log('User Location:', { lat, lng });
+    console.log('Hospital Coordinates:', coordinates);
+    
+    const baseURL = import.meta.env.MODE === "development" 
+      ? "http://localhost:5001" 
+      : "/";
+    
     const routeUrl = `${baseURL}/route?startLat=${lat}&startLng=${lng}&endLat=${coordinates[1]}&endLng=${coordinates[0]}`;
+    
+    console.log('Route URL:', routeUrl);
 
     axios.get(routeUrl).then((response) => {
       if (response.data.route && response.data.route.geometry) {

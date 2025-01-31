@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import emergencyController from '../controllers/emergencyController.js';
+
 const router = express.Router();
-const emergencyController = require('../controllers/emergencyController');
 
 router.post('/', emergencyController.handleEmergency);
 
-module.exports = router;
+export default router;

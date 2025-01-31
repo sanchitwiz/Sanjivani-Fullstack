@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
-const Hospital = require('./models/Hospital');
-const Service = require('./models/Service');
-const Doctor = require('./models/Doctor');
+import { connect, connection } from 'mongoose';
+import { insertMany } from './models/hospital';
+import { insertMany as _insertMany } from './models/Service';
+import { insertMany as __insertMany } from './models/Doctor';
 require('dotenv').config();
 
-mongoose.connect(process.env.MONGO_URI)
+connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.log(err));
 
@@ -16,7 +16,7 @@ const seedDatabase = async () => {
             { name: 'Surgery', description: 'Surgical specialist' },
             { name: 'Dermatology', description: 'Skin specialist' }
         ];
-        const serviceDocs = await Service.insertMany(newServices);
+        const serviceDocs = await _insertMany(newServices);
 
         // Create new Doctors
         const newDoctors = [
@@ -24,7 +24,7 @@ const seedDatabase = async () => {
             { name: 'Dr. Anjali Singh', phoneNumber: '8765432109', specialty: 'Surgery', opdTimings: '2:00 PM - 6:00 PM', day: 'Tuesday' },
             { name: 'Dr. Priya Sharma', phoneNumber: '7654321098', specialty: 'Dermatology', opdTimings: '10:00 AM - 4:00 PM', day: 'Wednesday' }
         ];
-        const doctorDocs = await Doctor.insertMany(newDoctors);
+        const doctorDocs = await __insertMany(newDoctors);
 
         // Create new Hospitals
         const newHospitals = [
@@ -53,10 +53,10 @@ const seedDatabase = async () => {
                 doctors: [doctorDocs[2]._id]
             }
         ];
-        await Hospital.insertMany(newHospitals);
+        await insertMany(newHospitals);
 
         console.log('New hospitals seeded successfully!');
-        mongoose.connection.close();
+        connection.close();
     } catch (err) {
         console.error(err);
     }

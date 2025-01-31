@@ -1,8 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
+import express from 'express';
+import User from '../models/User.js';
 
-// Route: Create a New User (POST /new)
+const router = express.Router();
+
 router.post('/new', async (req, res) => {
     const { username, email, phoneNumber, password } = req.body;
 
@@ -10,7 +10,6 @@ router.post('/new', async (req, res) => {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Email format validation (simple regex)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         return res.status(400).json({ message: 'Invalid email format' });
@@ -31,7 +30,6 @@ router.post('/new', async (req, res) => {
     }
 });
 
-// Route: Update a User by Email (PUT /updateByEmail)
 router.put('/updateByEmail', async (req, res) => {
     const { email, username, phoneNumber, password } = req.body;
 
@@ -61,7 +59,6 @@ router.put('/updateByEmail', async (req, res) => {
     }
 });
 
-// Route: Get All Users (GET /)
 router.get('/', async (req, res) => {
     try {
         const users = await User.find();
@@ -72,12 +69,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Route: Get a Specific User by Email (GET /:email)
 router.get('/:email', async (req, res) => {
-    const { email } = req.params;
-
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: req.params.email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -88,17 +82,15 @@ router.get('/:email', async (req, res) => {
     }
 });
 
-// Route: Get a Specific Attribute of a User by Email (GET /:email/:attribute)
 router.get('/:email/:attribute', async (req, res) => {
-    const { email, attribute } = req.params;
-
     try {
+        const { email, attribute } = req.params;
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        if (!user.toObject().hasOwnProperty(attribute)) {
+        if (!Object.prototype.hasOwnProperty.call(user.toObject(), attribute)) {
             return res.status(400).json({ message: `Attribute ${attribute} not found for this user` });
         }
 
@@ -109,15 +101,13 @@ router.get('/:email/:attribute', async (req, res) => {
     }
 });
 
-// Route: Get User by Email (POST /getByEmail)
 router.post('/getByEmail', async (req, res) => {
-    const { email } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ message: 'Email is required' });
-    }
-
     try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -129,4 +119,4 @@ router.post('/getByEmail', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

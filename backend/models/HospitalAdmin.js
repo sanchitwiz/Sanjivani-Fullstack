@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const hospitalAdminSchema = new mongoose.Schema({
+const hospitalAdminSchema = new Schema({
     username: {
         type: String,
         required: true
@@ -18,7 +18,7 @@ const hospitalAdminSchema = new mongoose.Schema({
         required:true
     },
     hospital: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'hospital', 
         required: true
     },
@@ -27,7 +27,7 @@ const hospitalAdminSchema = new mongoose.Schema({
         required: true
     },
     ambulances: [{
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Ambulance' 
     }],
     availableDoctors: {
@@ -46,4 +46,4 @@ const hospitalAdminSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('HospitalAdmin', hospitalAdminSchema);
+export default model('HospitalAdmin', hospitalAdminSchema);
